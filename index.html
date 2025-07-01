@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabores del Valle - Restaurante Gourmet</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gold': '#D4AF37',
+                        'gold-light': '#F4E4BC',
+                        'gold-dark': '#B8860B',
+                        'brown': '#8B4513',
+                        'brown-light': '#D2B48C',
+                        'brown-dark': '#654321'
+                    },
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-gold {
+            background: linear-gradient(135deg, #D4AF37, #F4E4BC);
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .stagger-1 { transition-delay: 0.1s; }
+        .stagger-2 { transition-delay: 0.2s; }
+        .stagger-3 { transition-delay: 0.3s; }
+        .stagger-4 { transition-delay: 0.4s; }
+        
+        .menu-item {
+            transition: all 0.3s ease;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .btn-gold {
+            background: linear-gradient(45deg, #D4AF37, #B8860B);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gold:hover {
+            background: linear-gradient(45deg, #B8860B, #D4AF37);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #8B4513, #D4AF37);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-white text-xl font-serif">Sabores del Valle</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="text-2xl font-serif font-bold text-white">
+                    <i class="fas fa-utensils mr-2 text-gold"></i>
+                    Sabores del Valle
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#inicio" class="text-white hover:text-gold transition-colors">Inicio</a>
+                    <a href="#menu" class="text-white hover:text-gold transition-colors">Menú</a>
+                    <a href="#nosotros" class="text-white hover:text-gold transition-colors">Nosotros</a>
+                    <a href="#contacto" class="text-white hover:text-gold transition-colors">Contacto</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="cartBtn" class="relative text-white hover:text-gold transition-colors">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span id="cartCount" class="cart-badge hidden">0</span>
+                    </button>
+                    <button id="reserveBtn" class="btn-gold text-white px-4 py-2 rounded-full font-medium">
+                        Reservar
+                    </button>
+                    <button id="mobileMenuBtn" class="md:hidden text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden glass-effect hidden">
+            <div class="container mx-auto px-4 py-4">
+                <a href="#inicio" class="block text-white py-2 hover:text-gold transition-colors">Inicio</a>
+                <a href="#menu" class="block text-white py-2 hover:text-gold transition-colors">Menú</a>
+                <a href="#nosotros" class="block text-white py-2 hover:text-gold transition-colors">Nosotros</a>
+                <a href="#contacto" class="block text-white py-2 hover:text-gold transition-colors">Contacto</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-brown to-brown-dark"></div>
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+        
+        <!-- Floating Elements -->
+        <div class="absolute top-20 left-10 floating">
+            <i class="fas fa-leaf text-gold text-3xl opacity-20"></i>
+        </div>
+        <div class="absolute top-40 right-20 floating" style="animation-delay: 1s;">
+            <i class="fas fa-wine-glass text-gold text-2xl opacity-20"></i>
+        </div>
+        <div class="absolute bottom-32 left-20 floating" style="animation-delay: 2s;">
+            <i class="fas fa-utensils text-gold text-2xl opacity-20"></i>
+        </div>
+        
+        <div class="relative z-10 text-center text-white px-4">
+            <h1 class="text-6xl md:text-8xl font-serif font-bold mb-6 text-shadow fade-in">
+                Sabores del Valle
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto fade-in stagger-1">
+                Experiencia gastronómica única donde cada plato cuenta una historia
+            </p>
+            <div class="space-x-4 fade-in stagger-2">
+                <button class="btn-gold text-white px-8 py-3 rounded-full font-medium text-lg">
+                    Ver Menú
+                </button>
+                <button class="border-2 border-white text-white px-8 py-3 rounded-full font-medium text-lg hover:bg-white hover:text-brown transition-all">
+                    Reservar Mesa
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center fade-in">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-award text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Calidad Premium</h3>
+                    <p class="text-gray-600">Ingredientes frescos y de la más alta calidad seleccionados cuidadosamente</p>
+                </div>
+                
+                <div class="text-center fade-in stagger-1">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clock text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Servicio Rápido</h3>
+                    <p class="text-gray-600">Atención eficiente sin comprometer la calidad de nuestros platos</p>
+                </div>
+                
+                <div class="text-center fade-in stagger-2">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-heart text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Ambiente Acogedor</h3>
+                    <p class="text-gray-600">Espacio diseñado para crear momentos inolvidables con tus seres queridos</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-serif font-bold mb-4 fade-in">Nuestro Menú</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto fade-in stagger-1">
+                    Descubre una selección exquisita de platos preparados con pasión y técnica
+                </p>
+            </div>
+            
+            <!-- Menu Filters -->
+            <div class="flex justify-center mb-12">
+                <div class="flex space-x-4 bg-gray-100 rounded-full p-2">
+                    <button class="menu-filter active px-6 py-2 rounded-full transition-all" data-category="all">
+                        Todos
+                    </button>
+                    <button class="menu-filter px-6 py-2 rounded-full transition-all" data-category="entradas">
+                        Entradas
+                    </button>
+                    <button class="menu-filter px-6 py-2 rounded-full transition-all" data-category="principales">
+                        Principales
+                    </button>
+                    <button class="menu-filter px-6 py-2 rounded-full transition-all" data-category="postres">
+                        Postres
+                    </button>
+                    <button class="menu-filter px-6 py-2 rounded-full transition-all" data-category="bebidas">
+                        Bebidas
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Menu Items -->
+            <div id="menuGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Entradas -->
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in" data-category="entradas">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Carpaccio de Res</h3>
+                            <span class="text-gold font-bold text-lg">$24</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Finas láminas de res con rúcula, parmesano y aceite de trufa</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Carpaccio de Res" data-price="24">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-1" data-category="entradas">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Ceviche de Mariscos</h3>
+                            <span class="text-gold font-bold text-lg">$28</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Mezcla fresca de mariscos marinados en limón con cilantro y ají</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Ceviche de Mariscos" data-price="28">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-2" data-category="entradas">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Tabla de Quesos</h3>
+                            <span class="text-gold font-bold text-lg">$32</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Selección de quesos artesanales con miel, nueces y mermeladas</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Tabla de Quesos" data-price="32">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Platos Principales -->
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in" data-category="principales">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Salmón a la Parrilla</h3>
+                            <span class="text-gold font-bold text-lg">$42</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Salmón fresco con vegetales asados y salsa de eneldo</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Salmón a la Parrilla" data-price="42">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-1" data-category="principales">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Filete Wellington</h3>
+                            <span class="text-gold font-bold text-lg">$58</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Filete de res envuelto en hojaldre con duxelles de champiñones</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Filete Wellington" data-price="58">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-2" data-category="principales">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Risotto de Mariscos</h3>
+                            <span class="text-gold font-bold text-lg">$38</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Arroz cremoso con mariscos frescos y azafrán</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Risotto de Mariscos" data-price="38">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-3" data-category="principales">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Pizza Gourmet</h3>
+                            <span class="text-gold font-bold text-lg">$26</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Base artesanal con prosciutto, rúcula y mozzarella de búfala</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Pizza Gourmet" data-price="26">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Postres -->
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in" data-category="postres">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Tiramisú Clásico</h3>
+                            <span class="text-gold font-bold text-lg">$16</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Postre italiano tradicional con café y mascarpone</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Tiramisú Clásico" data-price="16">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-1" data-category="postres">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Gelato Artesanal</h3>
+                            <span class="text-gold font-bold text-lg">$12</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Helado artesanal de vainilla, chocolate o fresa</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Gelato Artesanal" data-price="12">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-2" data-category="postres">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Crème Brûlée</h3>
+                            <span class="text-gold font-bold text-lg">$18</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Crema de vainilla con azúcar caramelizada</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Crème Brûlée" data-price="18">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Bebidas -->
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in" data-category="bebidas">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Vino Tinto Reserva</h3>
+                            <span class="text-gold font-bold text-lg">$35</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Selección premium de vinos tintos de la casa</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Vino Tinto Reserva" data-price="35">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="menu-item bg-white rounded-lg shadow-lg overflow-hidden fade-in stagger-1" data-category="bebidas">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-serif font-bold">Cóctel Signature</h3>
+                            <span class="text-gold font-bold text-lg">$18</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Cóctel especial de la casa con frutas tropicales</p>
+                        <button class="add-to-cart btn-gold text-white px-4 py-2 rounded-full w-full" data-name="Cóctel Signature" data-price="18">
+                            <i class="fas fa-plus mr-2"></i>Agregar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="fade-in">
+                    <h2 class="text-4xl font-serif font-bold mb-6">Nuestra Historia</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Desde 1995, Sabores del Valle ha sido el hogar de la excelencia culinaria. 
+                        Nuestro compromiso con la calidad y la innovación nos ha convertido en 
+                        referente gastronómico de la región.
+                    </p>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Cada plato es una obra de arte, preparado con ingredientes frescos y 
+                        técnicas tradicionales que honran nuestras raíces mientras abrazan 
+                        la modernidad.
+                    </p>
+                    <button class="btn-gold text-white px-6 py-3 rounded-full font-medium">
+                        Conoce Más
+                    </button>
+                </div>
+                <div class="fade-in stagger-1">
+                    <div class="bg-gradient-to-br from-gold to-gold-dark h-96 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-utensils text-white text-6xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-serif font-bold mb-4 fade-in">Contáctanos</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto fade-in stagger-1">
+                    Estamos aquí para hacer de tu experiencia algo inolvidable
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center fade-in">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-map-marker-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Ubicación</h3>
+                    <p class="text-gray-600">Av. Principal 123<br>Centro Histórico</p>
+                </div>
+                
+                <div class="text-center fade-in stagger-1">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-phone text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Teléfono</h3>
+                    <p class="text-gray-600">+1 (555) 123-4567<br>+1 (555) 987-6543</p>
+                </div>
+                
+                <div class="text-center fade-in stagger-2">
+                    <div class="w-16 h-16 gradient-gold rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clock text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold mb-2">Horarios</h3>
+                    <p class="text-gray-600">Lun-Dom: 12:00 - 23:00<br>Reservas hasta 22:00</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brown text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-serif font-bold mb-4">
+                        <i class="fas fa-utensils mr-2 text-gold"></i>
+                        Sabores del Valle
+                    </h3>
+                    <p class="text-brown-light mb-4">
+                        Experiencia gastronómica única donde cada plato cuenta una historia.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gold hover:text-gold-light transition-colors">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gold hover:text-gold-light transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gold hover:text-gold-light transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#inicio" class="text-brown-light hover:text-gold transition-colors">Inicio</a></li>
+                        <li><a href="#menu" class="text-brown-light hover:text-gold transition-colors">Menú</a></li>
+                        <li><a href="#nosotros" class="text-brown-light hover:text-gold transition-colors">Nosotros</a></li>
+                        <li><a href="#contacto" class="text-brown-light hover:text-gold transition-colors">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Servicios</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-brown-light hover:text-gold transition-colors">Reservaciones</a></li>
+                        <li><a href="#" class="text-brown-light hover:text-gold transition-colors">Eventos Privados</a></li>
+                        <li><a href="#" class="text-brown-light hover:text-gold transition-colors">Catering</a></li>
+                        <li><a href="#" class="text-brown-light hover:text-gold transition-colors">Delivery</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Newsletter</h4>
+                    <p class="text-brown-light mb-4">Suscríbete para recibir ofertas especiales</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Tu email" class="flex-1 px-3 py-2 rounded-l-lg text-brown">
+                        <button class="btn-gold px-4 py-2 rounded-r-lg">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-brown-light mt-8 pt-8 text-center">
+                <p class="text-brown-light">
+                    &copy; 2024 Sabores del Valle. Todos los derechos reservados.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Reservation Modal -->
+    <div id="reservationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-serif font-bold">Reservar Mesa</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="reservationForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Nombre</label>
+                    <input type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Teléfono</label>
+                    <input type="tel" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold" required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Fecha</label>
+                        <input type="date" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Hora</label>
+                        <input type="time" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold" required>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">Personas</label>
+                    <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="1">1 persona</option>
+                        <option value="2">2 personas</option>
+                        <option value="3">3 personas</option>
+                        <option value="4">4 personas</option>
+                        <option value="5">5 personas</option>
+                        <option value="6+">6+ personas</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-gold text-white px-6 py-3 rounded-lg w-full font-medium">
+                    Confirmar Reserva
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="notificationText">Mensaje</span>
+        </div>
+    </div>
+
+    <script src="js/animations.js"></script>
+</body>
+</html>
